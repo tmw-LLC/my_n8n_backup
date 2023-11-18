@@ -1,0 +1,502 @@
+{
+  "name": "GraphQL API Payment Received SMS",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "79031f05-e710-42da-ad98-e043bbd79821",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        60,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const processedRecords = [];\n\n// Check if items array is defined\nif (items && items.length > 0 && items[0].json && items[0].json.data && items[0].json.data.data && items[0].json.data.data.transaction__c) {\n  // Iterate over each item in the input array\n  for (const transaction of items[0].json.data.data.transaction__c) {\n    processedRecords.push({\n      _id: transaction._id,\n      client_name__c: transaction.client_name__c.trim(),\n      name: transaction.name.trim(),\n      trans_18_digit_id__c: transaction.trans_18_digit_id__c,\n      transaction_status__c: transaction.transaction_status__c,\n      txt_resource_id__c: transaction.txt_resource_id__c,\n      receipt_no__c: transaction.receipt_no__c,\n      record_type__c: transaction.record_type__c,\n      payment_amount__c: transaction.payment_amount__c,\n      loan_id__c: transaction.loan_id__c,\n      formatted_cell__c: transaction.formatted_cell__c,\n      client_id__c: transaction.client_id__c,\n       tx_message_language__c: transaction.message_language__c,\n      out_tx_id__c: transaction.out_tx_id__c,\n      sms_resource_id__c: transaction.sms_resource_id__c,\n      tx_sms_sent__c: transaction.tx_sms_sent__c\n    });\n  }\n}\n\nreturn processedRecords;\n"
+      },
+      "id": "5b248df7-5c9f-48e5-8dae-e3e560755b59",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -300
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "endpoint": "http://164.92.78.64:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "={\n  transaction__c(filters: [\"tx_sms_sent__c\", \"=\", \"went\"]) {\n    _id\n    client_name__c\n    name\n    trans_18_digit_id__c\n    transaction_status__c\n    txt_resource_id__c\n    receipt_no__c\n    record_type__c\n    payment_amount__c\n    loan_id__c\n    formatted_cell__c\n    client_id__c\n    message_language__c\n    out_tx_id__c\n    sms_resource_id__c\n    tx_sms_sent__c\n  }\n}",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://164.92.78.64:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "doF0YzuV06wby3vb7B6bTn1SFSm2HIyLu0QCZtLyR38"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,doF0YzuV06wby3vb7B6bTn1SFSm2HIyLu0QCZtLyR38"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=doF0YzuV06wby3vb7B6bTn1SFSm2HIyLu0QCZtLyR38"
+            }
+          ]
+        }
+      },
+      "id": "079f18a2-d250-41fd-8b1a-ccbf8e7583ec",
+      "name": "Pull Transaction details from Steedos",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        280,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "f685b7d7-e7e9-4dbc-a63e-eefbf5dc068a",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        60,
+        -80
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "65899b41-61d9-439b-9aba-30e3fc2d5774",
+      "name": "Replace Me",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        280,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "unit": "seconds"
+      },
+      "id": "20640d25-4b78-4bdf-ba61-5f7f88e4d1a4",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -80
+      ],
+      "webhookId": "453550fc-5f16-43dc-adf5-62ff835d0f5b"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.sandbox.africastalking.com/version1/messaging",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "apiKey",
+              "value": "bfe3414064e2e59803b9485f842b62cd30345e6630f3965b3ddc31a754c2eeb9"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "username",
+              "value": "sandbox"
+            },
+            {
+              "name": "to",
+              "value": "={{$node[\"IF\"].json[\"formatted_cell__c\"]}}"
+            },
+            {
+              "name": "message",
+              "value": "={{$node[\"IF\"].json[\"body__c\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e59e56f7-0fd6-40ca-b807-5c3950035444",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        660,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "endpoint": "http://164.92.78.64:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "={\n  sms_templets__c{\n    _id\n   sms_autonum__c\n    body__c\n    template_name__c\n    message_length__c\n    subject__c\n    message_language__c\n    code__c\n  }\n}\n  ",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://164.92.78.64:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "doF0YzuV06wby3vb7B6bTn1SFSm2HIyLu0QCZtLyR38"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,doF0YzuV06wby3vb7B6bTn1SFSm2HIyLu0QCZtLyR38"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=doF0YzuV06wby3vb7B6bTn1SFSm2HIyLu0QCZtLyR38"
+            }
+          ]
+        }
+      },
+      "id": "cf88364b-8a3c-43cf-90ab-e065107458ac",
+      "name": "Pull SMS Templet details from Steedos",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        680,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const processedRecords = [];\n\n// Check if items array is defined\nif (items && items.length > 0 && items[0].json && items[0].json.data && items[0].json.data.data && items[0].json.data.data.sms_templets__c) {\n  // Iterate over each item in the input array\n  for (const template of items[0].json.data.data.sms_templets__c) {\n    processedRecords.push({\n      _id: template._id,\n      sms_autonum__c: template.sms_autonum__c,\n      body__c: template.body__c,\n      template_name__c: template.template_name__c.trim(),\n      message_length__c: template.message_length__c,\n      subject__c: template.subject__c,\n      message_language__c: template.message_language__c,\n      code__c: template.code__c\n    });\n  }\n}\n\nreturn processedRecords;\n"
+      },
+      "id": "2e605ca6-a3fb-416c-bbea-cd280b9f943e",
+      "name": "Code1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "message_language__c",
+              "field2": "tx_message_language__c"
+            }
+          ]
+        },
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "id": "2492fc8b-6ff8-4132-a384-247abe000691",
+      "name": "Merge1",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Merge1\"].json[\"code__c\"]}}",
+              "value2": "={{\"pr\"}}"
+            },
+            {
+              "value1": "={{$node[\"Merge1\"].json[\"trans_18_digit_id__c\"]}}",
+              "operation": "notEqual",
+              "value2": "={{\"\"}}"
+            }
+          ]
+        }
+      },
+      "id": "dc702fea-0c45-4423-83fc-c0c6c987b6f7",
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        -300
+      ]
+    },
+    {
+      "parameters": {
+        "endpoint": "http://164.92.78.64:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "={\n  transaction__c(filters: [\"tx_sms_sent__c\", \"=\", \"went\"]) {\n    _id\n    client_name__c\n    name\n    trans_18_digit_id__c\n    transaction_status__c\n    txt_resource_id__c\n    receipt_no__c\n    record_type__c\n    payment_amount__c\n    loan_id__c\n    formatted_cell__c\n    client_id__c\n    message_language__c\n    out_tx_id__c\n    sms_resource_id__c\n    tx_sms_sent__c\n  }\n}",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://164.92.78.64:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "doF0YzuV06wby3vb7B6bTn1SFSm2HIyLu0QCZtLyR38"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,doF0YzuV06wby3vb7B6bTn1SFSm2HIyLu0QCZtLyR38"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=doF0YzuV06wby3vb7B6bTn1SFSm2HIyLu0QCZtLyR38"
+            }
+          ]
+        }
+      },
+      "id": "6a7c759c-e6c6-421c-b98a-6925fe649664",
+      "name": "Update SMS details in Steedos1",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        900,
+        -80
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pull Transaction details from Steedos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Pull SMS Templet details from Steedos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Pull Transaction details from Steedos": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull SMS Templet details from Steedos": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Update SMS details in Steedos1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Nairobi",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "f1b2f9ee-87dc-460f-89ca-9aaf092aec2d",
+  "id": "EzkNBRs0ALiD32iP",
+  "meta": {
+    "instanceId": "1b2627552cf67563e265c1f71ea7656c1f0fa12404f9dcfa1ca23532ded8d8e5"
+  },
+  "tags": []
+}

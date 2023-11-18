@@ -1,0 +1,97 @@
+{
+  "name": "AT test",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "7a0a8378-8965-4dfe-b995-c83f2c84f6ab",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        600,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.sandbox.africastalking.com/version1/messaging",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "apiKey",
+              "value": "bfe3414064e2e59803b9485f842b62cd30345e6630f3965b3ddc31a754c2eeb9"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "username",
+              "value": "sandbox"
+            },
+            {
+              "name": "to",
+              "value": " 256701440613"
+            },
+            {
+              "name": "message",
+              "value": "my n8n test "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0ca030f7-63c5-4b77-835f-c70961a00233",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        820,
+        200
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Nairobi",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "411e0687-e536-4f8d-92a7-427267aa74f6",
+  "id": "cYpfIVaEO2CYajRU",
+  "meta": {
+    "instanceId": "1b2627552cf67563e265c1f71ea7656c1f0fa12404f9dcfa1ca23532ded8d8e5"
+  },
+  "tags": []
+}

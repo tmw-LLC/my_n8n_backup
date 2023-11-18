@@ -1,0 +1,376 @@
+{
+  "name": "GraphQL API Fee Transactions",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "6af2e4d2-adde-4bf1-a568-6d7ecbc2fc98",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const jsonData = $json['data']['data']['transaction__c'];\n\nfunction formatDate(dateString) {\n  const options = { year: 'numeric', month: 'long', day: 'numeric' };\n  return new Date(dateString).toLocaleDateString('en-GB', options);\n}\n\nif (jsonData && Array.isArray(jsonData) && jsonData.length > 0) {\n  const individualRecords = jsonData.flatMap(transaction => {\n    const {\n      _id,\n      fee_type__c,\n      fee_amount__c,\n      loan_id__c,\n      transaction_status__c,\n      payment_date__c,\n      tranaction_resourceid__c,\n      name\n    } = transaction || {};\n\n    const formattedPaymentDate = payment_date__c ? formatDate(payment_date__c) : null;\n\n    return {\n      _id,\n      fee_type__c,\n      fee_amount__c,\n      loan_id__c,\n      transaction_status__c,\n      payment_date__c: formattedPaymentDate,\n      tranaction_resourceid__c,\n      name\n    };\n  });\n\n  return individualRecords;\n} else {\n  return []; // Return an empty array if the data structure is not as expected or if it's empty\n}\n"
+      },
+      "id": "c665c57c-85d9-4a0c-b003-77add1630fd3",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        100
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "8675870a-2924-4bc6-aa31-df87698d8a72",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1600,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "0480f285-75f1-4089-a93d-95099005a1ba",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        900,
+        100
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "0a59ac6d-902b-4398-bc8c-775efd6481e8",
+      "name": "Replace Me",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "unit": "seconds"
+      },
+      "id": "88a72d57-b46a-4c82-9efd-9158aa52187e",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        100
+      ],
+      "webhookId": "5a85db1e-6d9d-4c9f-9ba5-bccab5992ee0"
+    },
+    {
+      "parameters": {
+        "endpoint": "http://165.232.131.57:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "=query{\n  transaction__c(filters:[[\"fee_type__c\", \"=\", \"Late fees\"]]){\n    _id\n    fee_type__c\n    fee_amount__c\n    loan_id__c\n    _id\n    transaction_status__c\n    payment_date__c\n    tranaction_resourceid__c\n    name\n\n  }\n}",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://147.182.197.23:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            }
+          ]
+        }
+      },
+      "id": "59f93dea-b765-43ee-ad85-a06edfc852cf",
+      "name": "Pull Fee details from Steedos",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        380,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://146.190.170.73:8443/fineract-provider/api/v1/loans/{{ $json.loan_id__c }}/charges ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "authorization",
+              "value": "Basic bWlmb3M6cGFzc3dvcmQ="
+            },
+            {
+              "name": "fineract-platform-tenantid",
+              "value": "default"
+            },
+            {
+              "name": "fineract-platform-tenantid",
+              "value": "default"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chargeId\": 1,\n  \"locale\": \"en\",\n  \"amount\": {{ $json.fee_amount__c }},\n  \"dateFormat\": \"dd MMMM yyyy\",\n  \"dueDate\": \"{{ $json.payment_date__c }}\"\n}\n  ",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "df6c7f87-fdad-43a2-bff4-ae6d273c426a",
+      "name": "Submit Fee in Mifos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1520,
+        -100
+      ],
+      "retryOnFail": false,
+      "notesInFlow": true,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "5J3yXvU8OHa3YPId",
+          "name": "Mifos"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpoint": "http://165.232.131.57:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "=mutation {\n  transaction__c__update(id:\"{{ $json._id }}\", \n    doc:{transaction_status__c:\"Success\",tranaction_resourceid__c:{{ $json.resourceId }}}) {\n    _id\n    name\n    fee_type__c\n    fee_amount__c\n    fee_type__c\n    trecordtype__c\n    tranaction_resourceid__c\n    name \n  }\n}  ",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://147.182.197.23:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            }
+          ]
+        }
+      },
+      "id": "2f9f0bd9-2d48-4d7c-a974-f6e5ecd4ac31",
+      "name": "Send Fee details back to Steedos",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        1900,
+        120
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pull Fee details from Steedos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send Fee details back to Steedos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Submit Fee in Mifos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Fee details from Steedos": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit Fee in Mifos": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Nairobi",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "eadd63b7-6404-481a-bfd7-9b7cd19a6b2b",
+  "id": "8vvPanR0lxH2R3dY",
+  "meta": {
+    "instanceId": "1b2627552cf67563e265c1f71ea7656c1f0fa12404f9dcfa1ca23532ded8d8e5"
+  },
+  "tags": []
+}

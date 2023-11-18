@@ -1,0 +1,88 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "d90b8eb5-6981-47de-a358-58c94e061bf3",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "res.partner",
+        "operation": "getAll",
+        "returnAll": true,
+        "options": {
+          "fieldsList": [
+            "name",
+            "phone",
+            "id",
+            "vat",
+            "email"
+          ]
+        },
+        "filterRequest": {
+          "filter": [
+            {
+              "fieldName": "email",
+              "operator": "notEqual",
+              "value": "tomorrowug@gmail.com"
+            }
+          ]
+        }
+      },
+      "id": "fc7f5a0b-9887-47fb-a9f6-e2bfab38c426",
+      "name": "Odoo1",
+      "type": "@digital-boss/n8n-nodes-odoo.odoo",
+      "typeVersion": 1,
+      "position": [
+        720,
+        240
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "odooApi": {
+          "id": "RoyuLOX6Jlc4gU3B",
+          "name": "Odoo account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Odoo1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e616514f-7eb7-4313-9ced-da82f8f7abc2",
+  "id": "vTS1ad24sHmT6Fqs",
+  "meta": {
+    "instanceId": "1b2627552cf67563e265c1f71ea7656c1f0fa12404f9dcfa1ca23532ded8d8e5"
+  },
+  "tags": []
+}

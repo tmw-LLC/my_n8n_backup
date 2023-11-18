@@ -1,0 +1,385 @@
+{
+  "name": "GraphQL API Savings withdrawal Transactions",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "17230858-0e20-42dd-8532-47cfef63cf12",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        160,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const jsonData = $json['data']['data']['wallet_utilization__c'];\n\nfunction formatDate(dateString) {\n  const options = { year: 'numeric', month: 'long', day: 'numeric' };\n  return new Date(dateString).toLocaleDateString('en-GB', options);\n}\n\nif (jsonData && Array.isArray(jsonData)) {\n  const individualRecords = jsonData.flatMap(utilization => {\n    const {\n      _id,\n      name,\n      utilization_id__c,\n      utilization_date__c,\n      utilization_amount__c,\n      utilization_auto_num__c,\n      utilization_resource_id__c,\n      utilization_status__c,\n      hospital__c,\n      wallet_savings_id__c,\n      created\n    } = utilization;\n\n    const formattedUtilizationDate = utilization_date__c ? formatDate(utilization_date__c) : null;\n    const formattedCreatedDate = created ? formatDate(created) : null;\n\n    return {\n      _id,\n      name,\n      utilization_id__c,\n      utilization_date__c: formattedUtilizationDate,\n      utilization_amount__c,\n      utilization_auto_num__c,\n      utilization_resource_id__c,\n      utilization_status__c,\n      hospital__c,\n      wallet_savings_id__c,\n      created: formattedCreatedDate\n    };\n  });\n\n  return individualRecords;\n} else {\n  return []; // Return an empty array if the data structure is not as expected\n}\n"
+      },
+      "id": "c37a8d54-374d-413f-bafa-db15e1917115",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        100
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "a990cf88-2387-416c-a0d6-4223f8bfc707",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1600,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "55462006-a9e2-4179-8b38-d6adcf9ea7b2",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        900,
+        100
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "1510ce2b-903e-49c6-ac6a-e987b919f8dc",
+      "name": "Replace Me",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "unit": "seconds"
+      },
+      "id": "870c7bce-2d42-43c5-a40b-2580a83d41de",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        100
+      ],
+      "webhookId": "84f119d0-a85d-4b99-95ec-fcc2cb206ec7"
+    },
+    {
+      "parameters": {
+        "endpoint": "http://165.232.131.57:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "=mutation {\n  wallet_utilization__c__update(id:\"{{ $json.utilization_id__c }}\", doc:{utilization_resource_id__c:\"{{ $json.resourceId }}\",utilization_status__c:\"Approved\"}) {\n    _id\n    name\n    utilization_id__c\n    utilization_date__c\n    utilization_amount__c\n    utilization_auto_num__c\n    utilization_resource_id__c\n    utilization_status__c\n    hospital__c\n    wallet_savings_id__c\n    _id\n    created\n  }\n}   ",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://147.182.197.23:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            }
+          ]
+        }
+      },
+      "id": "b977be91-83d8-441e-b92d-d19e97075eb4",
+      "name": "Send Deposit details back to Steedos",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        1900,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "endpoint": "http://165.232.131.57:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "=query{\n  wallet_utilization__c(filters:[[\"utilization_status__c\", \"=\", \"Draft\"]]){\n    _id\n    name\n    utilization_id__c\n    utilization_date__c\n    utilization_amount__c\n    utilization_auto_num__c\n    utilization_resource_id__c\n    utilization_status__c\n    hospital__c\n    wallet_savings_id__c\n    _id\n    created\n  }\n}",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://147.182.197.23:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            }
+          ]
+        }
+      },
+      "id": "7799a8d8-c805-48a8-9c62-a743a1a2e2c6",
+      "name": "Pull Withdrawal details from Steedos",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        380,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://146.190.170.73:8443/fineract-provider/api/v1/savingsaccounts/{{ $json.wallet_savings_id__c }}/transactions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "withdrawal"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "authorization",
+              "value": "Basic bWlmb3M6cGFzc3dvcmQ="
+            },
+            {
+              "name": "command",
+              "value": "withdrawal"
+            },
+            {
+              "name": "fineract-platform-tenantid",
+              "value": "default"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"locale\": \"en\",\n  \"dateFormat\": \"dd MMMM yyyy\",\n  \"transactionDate\": \"{{ $json.utilization_date__c }}\",\n  \"transactionAmount\": \"{{ $json.utilization_amount__c }}\",\n  \"paymentTypeId\": \"1\",\n  \"bankNumber\": \"{{ $json.utilization_auto_num__c }}\",\n  \"receiptNumber\": \"{{ $json._id }}\"\n}\n    ",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "d1232017-52cf-43e7-81b0-8c292fe7a857",
+      "name": "Submit Withdrawals in Mifos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1540,
+        -100
+      ],
+      "retryOnFail": false,
+      "notesInFlow": true,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "5J3yXvU8OHa3YPId",
+          "name": "Mifos"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pull Withdrawal details from Steedos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send Deposit details back to Steedos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Submit Withdrawals in Mifos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Withdrawal details from Steedos": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit Withdrawals in Mifos": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Nairobi",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "7f719776-0a69-44e8-bc7c-149982345ddf",
+  "id": "yVPRPXpV0ZCn0jDS",
+  "meta": {
+    "instanceId": "1b2627552cf67563e265c1f71ea7656c1f0fa12404f9dcfa1ca23532ded8d8e5"
+  },
+  "tags": []
+}

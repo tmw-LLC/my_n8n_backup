@@ -1,0 +1,279 @@
+{
+  "name": "Steedos",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "1a395439-e335-4db7-87d6-49330061914d",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        540,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://147.182.197.23:3000/api/v4/accounts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,YS4QZgaViDrKk_Z-wC6gK9LuDOedoYWlRIFbuPN6UvJ"
+            },
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "cookie",
+              "value": "X-Space-Token=YS4QZgaViDrKk_Z-wC6gK9LuDOedoYWlRIFbuPN6UvJ;"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {}
+          }
+        }
+      },
+      "id": "85617a23-0f49-4cdb-828c-a5140af1df4e",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        760,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://146.190.170.73:8443/fineract-provider/api/v1/clients",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "tenantIdentifier",
+              "value": "default"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic bWlmb3M6cGFzc3dvcmQ="
+            },
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "tenantIdentifier",
+              "value": "default"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "officeId",
+              "value": 1
+            },
+            {
+              "name": "firstname",
+              "value": "Jane"
+            },
+            {
+              "name": "lastname",
+              "value": "={{ $json.value[0].name }}"
+            },
+            {
+              "name": "externalId",
+              "value": "KK"
+            },
+            {
+              "name": "mobileNo",
+              "value": "078123004512"
+            },
+            {
+              "name": "legalFormId",
+              "value": 1
+            },
+            {
+              "name": "dateFormat",
+              "value": "dd MMMM yyyy"
+            },
+            {
+              "name": "locale",
+              "value": "en"
+            },
+            {
+              "name": "active",
+              "value": true
+            },
+            {
+              "name": "activationDate",
+              "value": "30 October 2023"
+            },
+            {
+              "name": "submittedOnDate",
+              "value": "30 October 2023"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "175e8b33-4de6-4de6-aaf8-f3fb81c886d1",
+      "name": "HTTP Request1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        980,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://146.190.170.73:8443/fineract-provider/api/v1/clients/{{ $json.clientId}}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "tenantIdentifier",
+              "value": "default"
+            },
+            {
+              "name": "pretty",
+              "value": "true"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic bWlmb3M6cGFzc3dvcmQ="
+            },
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "tenantIdentifier",
+              "value": "default"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "6ec74f3e-53df-48f8-a555-3fc19c50dd93",
+      "name": "HTTP Request2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "2bf0bc89-a77c-4f24-91d1-3584202fa91a",
+      "name": "HTTP Request3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1420,
+        200
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2cdb18bd-dc35-4519-bb11-1093deef8141",
+  "id": "IiKlzpqQUup734Wk",
+  "meta": {
+    "instanceId": "1b2627552cf67563e265c1f71ea7656c1f0fa12404f9dcfa1ca23532ded8d8e5"
+  },
+  "tags": []
+}

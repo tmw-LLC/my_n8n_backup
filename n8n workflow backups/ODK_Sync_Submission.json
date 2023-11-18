@@ -1,0 +1,375 @@
+{
+  "name": "ODK Sync Submission",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "dd20a345-99b5-4f09-a825-b1b5b6817cce",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -580,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "439f2aae-f678-4b05-a4e4-c468ab2a9aec",
+      "name": "XML",
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        140,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://odkug.duckdns.org/v1/projects/2/forms/tunde/submissions/{{ $json.instanceId }}.xml ",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Get ODK Token').item.json.token }}"
+            },
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "cookie",
+              "value": "=__Host-session={{ $json.token }};__csrf=YXEP%2524HoLiHRlbt8I0CLUHKGiTT61qN!%2524Mq6GyN%2524O!JaqO5mgPCF4lF3ZcPzGOt4D; "
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "0d825df3-35d4-4ccb-9ce4-aecceee1dbdb",
+      "name": "Pull Submissions in XML",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -40,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://odkug.duckdns.org/v1/projects/2/forms/tunde/submissions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.token }} "
+            },
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "cookie",
+              "value": "=__Host-session={{ $json.token }};__csrf=YXEP%2524HoLiHRlbt8I0CLUHKGiTT61qN!%2524Mq6GyN%2524O!JaqO5mgPCF4lF3ZcPzGOt4D; "
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "00f94571-0872-433a-ba11-4f5a88b3d927",
+      "name": "Get Instanceid",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -220,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://odkug.duckdns.org/v1/sessions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"email\": \"etu.moses@gmail.com\",\n  \"password\": \"goliath5320!\"\n}",
+        "options": {}
+      },
+      "id": "c8dc255d-6e9f-401e-8506-494b026232c4",
+      "name": "Get ODK Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -400,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "endpoint": "http://165.232.131.57:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "=query{\n  opportunity{\n    _id\n    payment_id__c\n    name\n\n  }\n}",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://147.182.197.23:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            }
+          ]
+        }
+      },
+      "id": "0b40991a-14ae-448d-9fb4-aeb758c00bb3",
+      "name": "GraphQL",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        300,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "data.personalinformation.opportunityid",
+              "field2": "payment_id__c"
+            }
+          ]
+        },
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "id": "7913291f-3c60-4ca0-a848-898acd440c5c",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        660,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const processedRecords = [];\n\n// Check if items array is defined\nif (items && items.length > 0 && items[0].json && items[0].json.data && items[0].json.data.opportunity) {\n  // Iterate over each opportunity in the 'opportunity' array\n  for (const opportunity of items[0].json.data.opportunity) {\n    processedRecords.push({\n      _id: opportunity._id,\n      payment_id__c: opportunity.payment_id__c,\n      name: opportunity.name.trim()\n      // Add other fields as needed\n    });\n  }\n}\n\nreturn processedRecords;\n"
+      },
+      "id": "a7edb489-04b0-489f-a0a9-aa957d173c3d",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "endpoint": "http://165.232.131.57:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "=mutation {\n  kyc_forms__c__insert(doc:{name:\"{{ $json.name }}\", \n    opp_id__c:\"{{ $json._id }}\"}) {\n    name\n    _id\n  }\n}  ",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://147.182.197.23:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            }
+          ]
+        }
+      },
+      "id": "f116dc19-5b5c-4791-9d7f-3ea5d05f6c6a",
+      "name": "GraphQL1",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        860,
+        100
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get ODK Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ODK Token": {
+      "main": [
+        [
+          {
+            "node": "Get Instanceid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Instanceid": {
+      "main": [
+        [
+          {
+            "node": "Pull Submissions in XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Submissions in XML": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "GraphQL",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GraphQL": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "GraphQL1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9df7ddae-fe1e-4c5f-b1d1-fcca2b9d462d",
+  "id": "8IWVUDx4sY3ShavF",
+  "meta": {
+    "instanceId": "1b2627552cf67563e265c1f71ea7656c1f0fa12404f9dcfa1ca23532ded8d8e5"
+  },
+  "tags": []
+}

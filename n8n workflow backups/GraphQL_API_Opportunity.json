@@ -1,0 +1,438 @@
+{
+  "name": "GraphQL API Opportunity",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "6dbef577-fb49-4559-967a-b2af8000c779",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        320,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const jsonData = $json['data']['data']['opportunity'];\n\nif (jsonData && Array.isArray(jsonData)) {\n  function formatDate(dateString) {\n    const options = { year: 'numeric', month: 'long', day: 'numeric' };\n    return new Date(dateString).toLocaleDateString('en-GB', options);\n  }\n\n  const individualRecords = jsonData.map(opportunity => {\n    const {\n      _id,\n      name,\n      principle__c,\n      productid__c,\n      intrestrate__c,\n      loanapprovalstatus__c,\n      loantermfrequency__c,\n      numberofrepayments__c,\n      expecteddisbursementdate__c,\n      clientid__c,\n      daysinyeartype__c,\n      created\n    } = opportunity;\n\n    const formattedDate = expecteddisbursementdate__c ? formatDate(expecteddisbursementdate__c) : null;\n\n    return {\n      _id,\n      name,\n      principle__c,\n      productid__c,\n      intrestrate__c,\n      loanapprovalstatus__c,\n      loantermfrequency__c,\n      numberofrepayments__c,\n      expecteddisbursementdate__c: formattedDate,\n      clientid__c,\n      daysinyeartype__c,\n      created: formatDate(created)\n    };\n  });\n\n  return individualRecords;\n} else {\n  return []; // Return an empty array if the data structure is not as expected\n}\n"
+      },
+      "id": "5a98c4a2-33c7-48f6-9233-d131b40eb52a",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        60
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "0b654014-b938-4e21-827f-4ad91d5c6dee",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1100,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "endpoint": "http://165.232.131.57:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "=query{\n  opportunity(filters:[[\"loanapprovalstatus__c\", \"=\", \"Not submitted\"]]){\n    _id\n    name\n    principle__c\n    productid__c\n    intrestrate__c\n    loanapprovalstatus__c\n    loantermfrequency__c\n    numberofrepayments__c\n    expecteddisbursementdate__c\n    clientid__c\n    daysinyeartype__c\n    loanapprovalstatus__c\n    created\n  }\n}",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://147.182.197.23:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            }
+          ]
+        }
+      },
+      "id": "f9662807-c945-4c06-ba4b-09a12f11f9e7",
+      "name": "Pull Opportunity details from Steedos",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        520,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://146.190.170.73:8443/fineract-provider/api/v1/loans",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "authorization",
+              "value": "Basic bWlmb3M6cGFzc3dvcmQ="
+            },
+            {
+              "name": "fineract-platform-tenantid",
+              "value": "default"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"clientId\": {{ $json.clientid__c }},\n\t\"dateFormat\": \"dd MMMM yyyy\",\n  \"locale\": \"en_GB\",\n  \"productId\": 1,\n  \"principal\": {{ $json.principle__c }},\n  \"loanTermFrequency\": {{ $json.loantermfrequency__c }},\n  \"loanTermFrequencyType\": 1,\n  \"numberOfRepayments\": {{ $json.numberofrepayments__c }},\n  \"repaymentEvery\": 1,\n  \"repaymentFrequencyType\": 1,\n  \"daysInYearType\": 360,\n  \"transactionProcessingStrategyId\": 2,\n  \"expectedDisbursementDate\": \"{{ $json.expecteddisbursementdate__c }}\",\n  \"interestCalculationPeriodType\": 1,\n  \"interestType\": 0,\n  \"amortizationType\": 1,\n  \"interestRatePerPeriod\": {{ $json.intrestrate__c }},\n\t\"loanType\": \"individual\",\n\t\"submittedOnDate\": \"{{ $json.expecteddisbursementdate__c }}\"\n}\n      ",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "dfec41bd-b684-4732-b63a-8410ec6b6696",
+      "name": "Submit Loan in Mifos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        780,
+        260
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "5J3yXvU8OHa3YPId",
+          "name": "Mifos"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://146.190.170.73:8443/fineract-provider/api/v1/loans/{{ $json.loanId }}?command=approve ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "approve"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "authorization",
+              "value": "Basic bWlmb3M6cGFzc3dvcmQ="
+            },
+            {
+              "name": "command",
+              "value": "approve"
+            },
+            {
+              "name": "fineract-platform-tenantid",
+              "value": "default"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"locale\": \"en\",\n    \"dateFormat\": \"dd MMMM yyyy\",\n    \"approvedOnDate\": \"{{ $json.expecteddisbursementdate__c }}\",\n    \"expectedDisbursementDate\" : \"{{ $json.expecteddisbursementdate__c }}\",\n    \"note\": \"This Loan has been Approved\"\n\n} ",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "e5f1812e-bb46-472d-aeff-1f3e668e6282",
+      "name": "Approve Loan in Mifos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1100,
+        300
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "5J3yXvU8OHa3YPId",
+          "name": "Mifos"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://146.190.170.73:8443/fineract-provider/api/v1/loans/{{ $json.loanId }}?command=disburse",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "disburse"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "accept",
+              "value": "application/json"
+            },
+            {
+              "name": "authorization",
+              "value": "Basic bWlmb3M6cGFzc3dvcmQ="
+            },
+            {
+              "name": "command",
+              "value": "disburse"
+            },
+            {
+              "name": "fineract-platform-tenantid",
+              "value": "default"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"dateFormat\": \"dd MMMM yyyy\",\n  \"locale\": \"en\",\n  \"actualDisbursementDate\": \"{{ $json.changes.approvedOnDate }}\"\n \n}\n ",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "75ef1b59-09bb-4413-b21d-594e35842718",
+      "name": "Loan Disbursement in Mifos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1320,
+        300
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "5J3yXvU8OHa3YPId",
+          "name": "Mifos"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpoint": "http://165.232.131.57:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "=mutation {\n  opportunity__update(id:\"{{ $('Merge').item.json._id }}\", doc:{loanapprovalstatus__c:\"Approved\",loanid__c:{{ $('Merge').item.json.loanId }}}) {\n    _id\n    name\n    opp_name__c\n    name\n    \n  }\n}  ",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://147.182.197.23:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            }
+          ]
+        }
+      },
+      "id": "16ffc97b-5da4-4ebe-a660-d9e790ecb110",
+      "name": "Send Loan details back to Steedos",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        120
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pull Opportunity details from Steedos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Submit Loan in Mifos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Approve Loan in Mifos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull Opportunity details from Steedos": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit Loan in Mifos": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Approve Loan in Mifos": {
+      "main": [
+        [
+          {
+            "node": "Loan Disbursement in Mifos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loan Disbursement in Mifos": {
+      "main": [
+        [
+          {
+            "node": "Send Loan details back to Steedos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Nairobi",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "b95f0d85-7e2f-462f-9aeb-afde43bcb53b",
+  "id": "Zp70b1pJwm9ehwoZ",
+  "meta": {
+    "instanceId": "1b2627552cf67563e265c1f71ea7656c1f0fa12404f9dcfa1ca23532ded8d8e5"
+  },
+  "tags": []
+}

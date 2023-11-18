@@ -1,0 +1,296 @@
+{
+  "name": "GraphQL API Client",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "a2dd6540-5ef3-4a76-a0d0-444c3dc74965",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const processedRecords = [];\n\n// Function to format the date to \"DD MMMM YYYY\"\nfunction formatDate(dateString) {\n  if (!dateString) return null; // Handle undefined or null date strings\n  const options = { day: '2-digit', month: 'long', year: 'numeric' };\n  return new Date(dateString).toLocaleDateString('en-GB', options);\n}\n\n// Check if items array is defined\nif (items && items.length > 0 && items[0].json && items[0].json.data && items[0].json.data.data && items[0].json.data.data.accounts) {\n  // Iterate over each item in the input array\n  for (const account of items[0].json.data.data.accounts) {\n    // Split the name into firstname and lastname\n    const spaceIndex = account.name.indexOf(' ');\n    const firstname = spaceIndex !== -1 ? account.name.substring(0, spaceIndex) : account.name;\n    const lastname = spaceIndex !== -1 ? account.name.substring(spaceIndex + 1) : '';\n\n    // Format the 'created' date field to \"DD MMMM YYYY\"\n    const formattedDate = formatDate(account.created);\n\n    processedRecords.push({\n      _id: account._id,\n      firstname: firstname,\n      lastname: lastname,\n      nickname: account.nickname,\n      cid__c: account.cid__c,\n      created: formattedDate // Replace the original date with the formatted date\n    });\n  }\n}\n\nreturn processedRecords;\n"
+      },
+      "id": "8f083bbd-3e8d-4017-98fc-21fad6c0b32f",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "endpoint": "http://165.232.131.57:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "=mutation {\n  accounts__update(id:\"{{ $json._id }}\", doc:{cid__c:{{ $json.clientId }}}) {\n    _id\n    name\n    nickname\n  }\n}  ",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://147.182.197.23:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            }
+          ]
+        }
+      },
+      "id": "be50f94b-7a87-4042-bcf1-e39319b33033",
+      "name": "Send ClientID back to Steedos",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://146.190.170.73:8443/fineract-provider/api/v1/clients",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "tenantIdentifier",
+              "value": "default"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic bWlmb3M6cGFzc3dvcmQ="
+            },
+            {
+              "name": "User-Agent",
+              "value": "insomnia/8.3.0"
+            },
+            {
+              "name": "tenantIdentifier",
+              "value": "default"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\t\t\"officeId\": 1,\n\t\"firstname\": \"{{ $json.firstname }}\",\n\t\"lastname\": \"{{ $json.lastname }}\",\n\"externalId\": \"{{ $json._id }}\",\n\t\"legalFormId\": 1,\n\t\"dateFormat\": \"dd MMMM yyyy\",\n\t\"locale\": \"en\",\n\t\"active\": true,\n\t\"activationDate\": \"{{ $json.created }}\",\n    \"submittedOnDate\":\"{{ $json.created }}\"      \n}     ",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "4ecb8f1a-10d7-4656-a36f-de6b06328e8c",
+      "name": "Create Client In Mifos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        960,
+        200
+      ],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "5J3yXvU8OHa3YPId",
+          "name": "Mifos"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpoint": "http://165.232.131.57:3000/graphql",
+        "allowUnauthorizedCerts": true,
+        "requestFormat": "json",
+        "query": "=query{\n  accounts(filters:[[\"cid__c\", \"=\", \"na\"]]){\n    _id\n    name\n    nickname\n    cid__c\n    _id\n    created\n  }\n}",
+        "responseFormat": "string",
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Origin",
+              "value": "http://147.182.197.23:3000"
+            },
+            {
+              "name": "X-Auth-Token",
+              "value": "ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apikey,ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            },
+            {
+              "name": "Cookie",
+              "value": "X-Space-Token=ZlxgliiauvSA3Vy8hQWdGMVPBBGOKEY5Hl4GYeR9Cf8"
+            }
+          ]
+        }
+      },
+      "id": "bdafa14c-e641-45dd-bedb-c4527116734d",
+      "name": "Pull details from Steedos",
+      "type": "n8n-nodes-base.graphql",
+      "typeVersion": 1,
+      "position": [
+        580,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "b4a31445-215c-4016-8284-b426e965c87b",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        1180,
+        200
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pull details from Steedos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Create Client In Mifos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pull details from Steedos": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Client In Mifos": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send ClientID back to Steedos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Africa/Nairobi",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "934bcd17-949f-45dd-be2e-0aec0bc8784f",
+  "id": "OqRrh2ixH3tVg8sG",
+  "meta": {
+    "instanceId": "1b2627552cf67563e265c1f71ea7656c1f0fa12404f9dcfa1ca23532ded8d8e5"
+  },
+  "tags": []
+}
