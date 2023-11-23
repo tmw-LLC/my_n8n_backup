@@ -1,0 +1,23 @@
+*****MongoDB create User***
+##Open the MongoDB shell:
+
+mongo
+
+
+##This will take you into the MongoDB shell, and you should see a prompt like >. Now, you can enter MongoDB commands.
+
+##Switch to the admin database:
+
+use admin
+
+
+##Now, you can run the db.createUser command:
+
+db.createUser({
+  user: "tutu",
+  pwd: "mypassword",
+  roles: [
+    { role: "readWrite", db: "your_database" },
+    { role: "dbAdmin", db: "your_database" }
+  ]
+})
