@@ -1,0 +1,40 @@
+
+############Docker Build###########
+
+docker build -t etumoses/steedos-community:2.5.3  .
+
+
+
+*****Docker Push *********
+docker login
+docker tag etumoses/steedos-community:2.5.2 etumoses/steedos-community:2.5.2
+docker push etumoses/steedos-community:2.5.2
+
+
+
+##################p2######################
+docker build -t etumoses/upsyd:1  .
+
+
+*****Docker Push *********
+docker login
+docker tag etumoses/upsyd:1 etumoses/etumoses/upsyd:1
+docker push etumoses/etumoses/upsyd:1
+
+
+
+
+
+
+
+docker run -it --rm etumoses/steedos-community:2.5.3 /bin/bash
+
+
+
+
+
+
+
+
+
+
